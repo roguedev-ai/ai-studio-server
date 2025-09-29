@@ -74,13 +74,6 @@ WORKDIR /app
 RUN apt-get update && apt-get install -y git ca-certificates && \
     git clone https://github.com/lobehub/lobe-chat.git .
 
-COPY package.json pnpm-workspace.yaml ./
-COPY .npmrc ./
-
-# Copy our repository files (overrides)
-COPY .env.local* ./
-COPY docker-compose.yml ./
-
 RUN \
     # Install pnpm and corepack
     npm install -g corepack@latest \
@@ -88,9 +81,6 @@ RUN \
     && corepack use $(sed -n 's/.*"packageManager": "\(.*\)".*/\1/p' package.json) \
     # Install the dependencies
     && pnpm i
-
-# Copy all source and build
-COPY . .
 
 # run build standalone for docker version
 RUN npm run build:docker
