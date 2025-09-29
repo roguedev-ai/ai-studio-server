@@ -3,7 +3,7 @@ services:
   gideon-studio:
     build: .
     ports:
-      - "3000:3000"
+      - "3000:3210"
     environment:
       - NODE_ENV=production
     volumes:
