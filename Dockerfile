@@ -1,3 +1,6 @@
+## Gideon Studio Docker Build
+## Custom LobeChat with feature flags disabled
+
 ## Set global build ENV
 ARG NODEJS_VERSION="24"
 
@@ -32,7 +35,7 @@ RUN \
     # Cleanup temp files
     && rm -rf /tmp/* /var/lib/apt/lists/* /var/tmp/*
 
-## Builder image, install all the dependencies and build the app
+## Builder image, copy Gideon Studio source
 FROM base AS builder
 
 ARG USE_CN_MIRROR
@@ -70,17 +73,31 @@ ENV NODE_OPTIONS="--max-old-space-size=6144"
 
 WORKDIR /app
 
-# Clone the complete Lobe Chat repository for Gideon Studio
-RUN apt-get update && apt-get install -y git ca-certificates && \
-    git clone https://github.com/lobehub/lobe-chat.git .
+# Copy Gideon Studio source files (custom LobeChat)
+COPY lobe-chat-custom/package.json lobe-chat-custom/pnpm-workspace.yaml ./
+COPY lobe-chat-custom/.npmrc ./
+COPY lobe-chat-custom/packages ./packages
 
 RUN \
-    # Install pnpm and corepack
-    npm install -g corepack@latest \
+    # If you want to build docker in China, build with --build-arg USE_CN_MIRROR=true
+    if [ "${USE_CN_MIRROR:-false}" = "true" ]; then \
+        export SENTRYCLI_CDNURL="https://npmmirror.com/mirrors/sentry-cli"; \
+        npm config set registry "https://registry.npmmirror.com/"; \
+        echo 'canvas_binary_host_mirror=https://npmmirror.com/mirrors/canvas' >> .npmrc; \
+    fi \
+    # Set the registry for corepack
+    && export COREPACK_NPM_REGISTRY=$(npm config get registry | sed 's/\/$//') \
+    # Update corepack to latest (nodejs/corepack#612)
+    && npm i -g corepack@latest \
+    # Enable corepack
     && corepack enable \
+    # Use pnpm for corepack
     && corepack use $(sed -n 's/.*"packageManager": "\(.*\)".*/\1/p' package.json) \
     # Install the dependencies
     && pnpm i
+
+# Copy the rest of Gideon Studio source
+COPY lobe-chat-custom/ .
 
 # run build standalone for docker version
 RUN npm run build:docker

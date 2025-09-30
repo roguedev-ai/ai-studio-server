@@ -1,11 +1,15 @@
 #!/bin/bash
 
 # Gideon Studio Deployment Script
-# This script sets up and deploys Gideon Studio on a remote server
+# This script has been updated - please use deploy-gideon.sh for customized deployment
 
-echo "=== Gideon Studio AI Studio Server Deployment ==="
-echo "Repository: https://github.com/roguedev-ai/ai-studio-server"
+echo "=== Gideon Studio AI Studio Server (Legacy Script) ==="
+echo "⚠️  This script is deprecated. Use deploy-gideon.sh for the customized version."
 echo ""
+echo "To use the new deployment script:"
+echo "  ./deploy-gideon.sh"
+echo ""
+echo "Or run legacy deployment:"
 
 # Check if we're already in the repository directory
 if [[ -f "README.md" && -f "docker-compose.yml" && -f "deploy.sh" ]]; then

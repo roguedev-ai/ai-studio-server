@@ -1,11 +1,30 @@
 version: '3.8'
 services:
   gideon-studio:
-    build: .
+    build:
+      context: .
+      args:
+        FEATURE_FLAGS: "-market"
     ports:
       - "3000:3210"
     environment:
       - NODE_ENV=production
+      # Gideon Studio Branding
+      - NEXT_PUBLIC_APP_NAME=Gideon Studio
+      - NEXT_PUBLIC_APP_DESCRIPTION=Your Personal AI Studio
+      - NEXT_PUBLIC_APP_URL=https://ai.gideon.studio
+      # Feature Flags - Disable Discover/Market
+      - FEATURE_FLAGS=-market
+      # Database
+      - NEXT_PUBLIC_SERVICE_MODE=server
+      - DATABASE_URL=postgresql://gideon:password@localhost:5432/gideon_studio
+      # Authentication (set your NextAuth secret here)
+      - NEXTAUTH_URL=http://localhost:3000
+      # Google Gemini (set your API key here)
+      - GOOGLE_API_KEY=${GOOGLE_API_KEY:-your-google-gemini-api-key}
+      # Additional LLMs (optional)
+      # - OPENAI_API_KEY=${OPENAI_API_KEY}
+      # - ANTHROPIC_API_KEY=${ANTHROPIC_API_KEY}
     volumes:
       - ./data:/app/data
     depends_on:

@@ -10,7 +10,13 @@
 
 ## 🔐 Privacy-First, AI-Powered Studio
 
-Gideon Studio is a personal AI assistant platform built on Lobe Chat that gives you complete control over your data and AI interactions. Deploy locally or on your own infrastructure with support for multiple LLM providers (OpenAI, Anthropic, Google Gemini, Ollama, etc.).
+Gideon Studio is a **customized LobeChat fork** that provides a branded, privacy-first AI assistant platform. **Key customizations:**
+- ❌ **Discover/Market feature disabled** - Clean, focused interface
+- 🎨 **Gideon Studio branding** throughout the application
+- 🗄️ **PostgreSQL database backend** for advanced features
+- 🔒 **Complete local control** over data and AI interactions
+
+Built on LobeChat with support for multiple LLM providers (OpenAI, Anthropic, Google Gemini, Ollama, etc.).
 
 ## ✨ Key Features
 
