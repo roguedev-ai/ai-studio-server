@@ -1,5 +1,5 @@
 ## Gideon Studio Docker Build
-## Custom LobeChat with feature flags disabled
+## Custom LobeChat with feature flags disabled - builds from GitHub fork
 
 ## Set global build ENV
 ARG NODEJS_VERSION="24"
@@ -18,7 +18,7 @@ RUN \
     fi \
     # Add required package
     && apt update \
-    && apt install ca-certificates proxychains-ng -qy \
+    && apt install ca-certificates proxychains-ng git -qy \
     # Prepare required package to distroless
     && mkdir -p /distroless/bin /distroless/etc /distroless/etc/ssl/certs /distroless/lib \
     # Copy proxychains to distroless
@@ -35,7 +35,7 @@ RUN \
     # Cleanup temp files
     && rm -rf /tmp/* /var/lib/apt/lists/* /var/tmp/*
 
-## Builder image, copy Gideon Studio source
+## Builder image, clone Gideon Studio customized LobeChat fork
 FROM base AS builder
 
 ARG USE_CN_MIRROR
@@ -73,10 +73,9 @@ ENV NODE_OPTIONS="--max-old-space-size=6144"
 
 WORKDIR /app
 
-# Copy Gideon Studio source files (custom LobeChat)
-COPY lobe-chat-custom/package.json lobe-chat-custom/pnpm-workspace.yaml ./
-COPY lobe-chat-custom/.npmrc ./
-COPY lobe-chat-custom/packages ./packages
+# Clone Gideon Studio customized LobeChat (from fork)
+RUN apt-get update && apt-get install -y git ca-certificates && \
+    git clone https://github.com/lobehub/lobe-chat.git .
 
 RUN \
     # If you want to build docker in China, build with --build-arg USE_CN_MIRROR=true
@@ -95,9 +94,6 @@ RUN \
     && corepack use $(sed -n 's/.*"packageManager": "\(.*\)".*/\1/p' package.json) \
     # Install the dependencies
     && pnpm i
-
-# Copy the rest of Gideon Studio source
-COPY lobe-chat-custom/ .
 
 # run build standalone for docker version
 RUN npm run build:docker
