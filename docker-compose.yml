@@ -17,11 +17,13 @@ services:
       - FEATURE_FLAGS=-market
       # Database
       - NEXT_PUBLIC_SERVICE_MODE=server
-      - DATABASE_URL=postgresql://gideon:password@localhost:5432/gideon_studio
+      - DATABASE_URL=postgresql://gideon:password@postgres:5432/gideon_studio
       # Authentication (set your NextAuth secret here)
       - NEXTAUTH_URL=http://localhost:3000
       # Google Gemini (set your API key here)
       - GOOGLE_API_KEY=${GOOGLE_API_KEY:-your-google-gemini-api-key}
+      # ChromaDB Connection
+      - CHROMADB_URL=http://chromadb:8000
       # Additional LLMs (optional)
       # - OPENAI_API_KEY=${OPENAI_API_KEY}
       # - ANTHROPIC_API_KEY=${ANTHROPIC_API_KEY}
@@ -29,6 +31,7 @@ services:
       - ./data:/app/data
     depends_on:
       - postgres
+      - chromadb
 
   postgres:
     image: postgres:15
@@ -41,5 +44,28 @@ services:
     ports:
       - "5432:5432"
 
+  chromadb:
+    image: chromadb/chroma:latest
+    container_name: gideon-chromadb
+    ports:
+      - "8000:8000"
+    volumes:
+      - chromadb_data:/chroma/chroma
+    environment:
+      - IS_PERSISTENT=TRUE
+      - PERSIST_DIRECTORY=/chroma/chroma
+      # Development auth (configure for production)
+      - CHROMA_SERVER_AUTHN_CREDENTIALS=admin:chromadb_password
+      - CHROMA_SERVER_AUTHN_PROVIDER=chromadb.auth.token_authn.TokenAuthenticationServerProvider
+    depends_on:
+      - postgres
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/api/v1/heartbeat"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
 volumes:
   postgres_data:
+  chromadb_data:
