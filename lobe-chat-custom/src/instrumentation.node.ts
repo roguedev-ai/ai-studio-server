@@ -1,4 +1,7 @@
 import { register } from '@lobechat/observability-otel/node'
 import { version } from '../package.json';
 
-register({ version })
+// Skip observability registration during Docker builds to prevent memory issues
+if (process.env.DOCKER !== 'true') {
+  register({ version })
+}
