@@ -47,6 +47,9 @@ const nextConfig: NextConfig = {
     webVitalsAttribution: ['CLS', 'LCP'],
     webpackMemoryOptimizations: true,
   },
+
+  // Fix large file caching issues
+  generateBuildId: async () => 'build-' + Date.now(),
   async headers() {
     const securityHeaders = [
       {

@@ -7,6 +7,12 @@ services:
         FEATURE_FLAGS: "-market"
     ports:
       - "3000:3210"
+    deploy:
+      resources:
+        limits:
+          memory: 4G
+        reservations:
+          memory: 2G
     environment:
       - NODE_ENV=production
       # Gideon Studio Branding
