@@ -68,8 +68,8 @@ ENV NEXT_PUBLIC_ANALYTICS_UMAMI="${NEXT_PUBLIC_ANALYTICS_UMAMI}" \
     NEXT_PUBLIC_UMAMI_SCRIPT_URL="${NEXT_PUBLIC_UMAMI_SCRIPT_URL}" \
     NEXT_PUBLIC_UMAMI_WEBSITE_ID="${NEXT_PUBLIC_UMAMI_WEBSITE_ID}"
 
-# Node
-ENV NODE_OPTIONS="--max-old-space-size=6144"
+# Node - Increased memory allocation for build
+ENV NODE_OPTIONS="--max-old-space-size=8192"
 
 WORKDIR /app
 
@@ -92,7 +92,9 @@ RUN \
     && corepack enable \
     # Use pnpm for corepack
     && corepack use $(sed -n 's/.*"packageManager": "\(.*\)".*/\1/p' package.json) \
-    # Install the dependencies
+    # Pre-install to avoid resolution conflicts
+    && pnpm install --frozen-lockfile --ignore-scripts \
+    # Full installation
     && pnpm i
 
 # run build standalone for docker version

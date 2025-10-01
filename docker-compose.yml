@@ -10,9 +10,9 @@ services:
     deploy:
       resources:
         limits:
-          memory: 4G
+          memory: 8G
         reservations:
-          memory: 2G
+          memory: 4G
     environment:
       - NODE_ENV=production
       # Gideon Studio Branding
