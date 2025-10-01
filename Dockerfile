@@ -92,10 +92,8 @@ RUN \
     && corepack enable \
     # Use pnpm for corepack
     && corepack use $(sed -n 's/.*"packageManager": "\(.*\)".*/\1/p' package.json) \
-    # Pre-install to avoid resolution conflicts
-    && pnpm install --frozen-lockfile --ignore-scripts \
-    # Full installation
-    && pnpm i
+    # Install dependencies - allow lock file generation
+    && pnpm install --ignore-scripts
 
 # run build standalone for docker version
 RUN npm run build:docker
