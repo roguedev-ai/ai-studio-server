@@ -86,6 +86,26 @@ else
     echo "NEXT_AUTH_SECRET=$NEXTAUTH_SECRET" > .env.local
 fi
 
+# Prompt for accessible URL (critical for remote/server access)
+echo ""
+echo "Enter the accessible URL/domain for your deployment:"
+echo "  (Example: http://10.1.10.132:3000, http://mydomain.com, or http://localhost:3000)"
+echo "  (This configures how you'll access Gideon Studio from external machines)"
+read DEPLOYMENT_URL
+DEPLOYMENT_URL=${DEPLOYMENT_URL:-http://localhost:3000}
+
+# Update .env.local with the accessible URL
+if [[ -f ".env.local" ]]; then
+    if ! grep -q "NEXTAUTH_URL=" .env.local; then
+        echo "NEXTAUTH_URL=$DEPLOYMENT_URL" >> .env.local
+    else
+        sed -i.bak "s|NEXTAUTH_URL=.*|NEXTAUTH_URL=$DEPLOYMENT_URL|" .env.local
+        rm .env.local.bak 2>/dev/null || true
+    fi
+else
+    echo "NEXTAUTH_URL=$DEPLOYMENT_URL" > .env.local
+fi
+
 echo "✅ Configuration complete!"
 echo ""
 echo "🎯 Deployment Configuration:"
@@ -139,7 +159,7 @@ if curl -f --max-time 10 "http://localhost:3000" > /dev/null 2>&1; then
     echo "🎉 DEPLOYMENT SUCCESSFUL! 🎉"
     echo ""
     echo "📖 Gideon Studio is now running at:"
-    echo "   🌐 http://localhost:3000"
+    echo "   🌐 $DEPLOYMENT_URL"
     echo ""
     echo "🔒 Current Features (Phase 1 Complete ✅):"
     echo "   • Discover/Market feature: DISABLED ✅"
