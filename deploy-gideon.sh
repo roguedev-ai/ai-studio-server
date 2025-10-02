@@ -155,7 +155,7 @@ docker compose down 2>/dev/null || docker-compose down 2>/dev/null || true
 
 # Build Docker image
 echo "Building Docker image..."
-if docker compose build 2>&1; then
+if docker compose build --build-arg APP_URL=$DEPLOYMENT_URL 2>&1; then
     echo "✅ Build successful!"
 else
     echo "❌ Build failed. Check the errors above."
