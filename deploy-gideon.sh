@@ -94,7 +94,7 @@ echo "  (This configures how you'll access Gideon Studio from external machines)
 read DEPLOYMENT_URL
 DEPLOYMENT_URL=${DEPLOYMENT_URL:-http://localhost:3000}
 
-# Update .env.local with the accessible URL
+# Update .env.local with the accessible URL and server mode configuration
 if [[ -f ".env.local" ]]; then
     if ! grep -q "NEXTAUTH_URL=" .env.local; then
         echo "NEXTAUTH_URL=$DEPLOYMENT_URL" >> .env.local
@@ -106,6 +106,34 @@ else
     echo "NEXTAUTH_URL=$DEPLOYMENT_URL" > .env.local
 fi
 
+# Ensure server mode configuration
+if [[ -f ".env.local" ]]; then
+    # Server mode configuration
+    if ! grep -q "NEXT_PUBLIC_SERVICE_MODE=" .env.local; then
+        echo "NEXT_PUBLIC_SERVICE_MODE=server" >> .env.local
+    fi
+
+    # External App URL for OIDC/Auth
+    if ! grep -q "APP_URL=" .env.local; then
+        echo "APP_URL=$DEPLOYMENT_URL" >> .env.local
+    else
+        sed -i.bak "s|APP_URL=.*|APP_URL=$DEPLOYMENT_URL|" .env.local
+        rm .env.local.bak 2>/dev/null || true
+    fi
+
+    # Database URL for server mode
+    if ! grep -q "DATABASE_URL=" .env.local; then
+        echo "DATABASE_URL=postgresql://gideon:password@postgres:5432/gideon_studio" >> .env.local
+    fi
+
+    # Generate database encryption secret
+    if ! grep -q "KEY_VAULTS_SECRET=" .env.local; then
+        KEY_VAULTS_SECRET=$(openssl rand -base64 32 2>/dev/null || echo "auto-generated-$(date +%s)-change-this-in-production-$(head /dev/urandom | tr -dc A-Za-z0-9 | head -c32 2>/dev/null || echo 'random')" | head -c50)
+        echo "KEY_VAULTS_SECRET=$KEY_VAULTS_SECRET" >> .env.local
+        echo "Generated database encryption key"
+    fi
+fi
+
 echo "✅ Configuration complete!"
 echo ""
 echo "🎯 Deployment Configuration:"
@@ -113,6 +141,7 @@ echo "   • App Name: Gideon Studio"
 echo "   • Feature Flags: -market (Discover/Market disabled)"
 echo "   • Database: PostgreSQL (local)"
 echo "   • Port: 3000"
+echo "   • Accessible URL: $DEPLOYMENT_URL"
 echo ""
 
 # Build and start services
