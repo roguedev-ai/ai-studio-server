@@ -18,14 +18,17 @@ services:
       # Gideon Studio Branding
       - NEXT_PUBLIC_APP_NAME=Gideon Studio
       - NEXT_PUBLIC_APP_DESCRIPTION=Your Personal AI Studio
-      - NEXT_PUBLIC_APP_URL=https://ai.gideon.studio
+      - NEXT_PUBLIC_APP_URL=${NEXT_PUBLIC_APP_URL:-https://ai.gideon.studio}
       # Feature Flags - Disable Discover/Market
       - FEATURE_FLAGS=-market
       # Database
       - NEXT_PUBLIC_SERVICE_MODE=server
-      - DATABASE_URL=postgresql://gideon:password@postgres:5432/gideon_studio
-      # Authentication (set your NextAuth secret here)
-      - NEXTAUTH_URL=http://localhost:3000
+      - DATABASE_URL=${DATABASE_URL:-postgresql://gideon:password@postgres:5432/gideon_studio}
+      # Authentication - Use deployment URL from .env.local
+      - NEXTAUTH_URL=${NEXTAUTH_URL:-http://localhost:3000}
+      - APP_URL=${APP_URL:-http://localhost:3000}
+      - NEXT_AUTH_SECRET=${NEXT_AUTH_SECRET:-create-a-secure-secret}
+      - KEY_VAULTS_SECRET=${KEY_VAULTS_SECRET:-create-a-secure-key}
       # Google Gemini (set your API key here)
       - GOOGLE_API_KEY=${GOOGLE_API_KEY:-your-google-gemini-api-key}
       # ChromaDB Connection
