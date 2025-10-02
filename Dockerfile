@@ -5,6 +5,9 @@
 ARG CACHE_BUSTER
 ARG APP_URL
 
+## Force cache invalidation on package.json changes
+ARG PACKAGE_JSON_CHECKSUM
+
 ## Set global build ENV
 ARG NODEJS_VERSION="24"
 
