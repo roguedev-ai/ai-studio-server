@@ -8,6 +8,9 @@ ARG APP_URL
 ## Force cache invalidation on package.json changes
 ARG PACKAGE_JSON_CHECKSUM
 
+## Server mode configuration - must be available at build time
+ARG NEXT_PUBLIC_SERVICE_MODE
+
 ## Set global build ENV
 ARG NODEJS_VERSION="24"
 
@@ -68,6 +71,7 @@ ARG NEXT_PUBLIC_UMAMI_WEBSITE_ID
 ARG FEATURE_FLAGS
 
 ENV NEXT_PUBLIC_BASE_PATH="${NEXT_PUBLIC_BASE_PATH}" \
+    NEXT_PUBLIC_SERVICE_MODE="${NEXT_PUBLIC_SERVICE_MODE}" \
     FEATURE_FLAGS="${FEATURE_FLAGS}" \
     APP_URL="${APP_URL}"
 # Sentry

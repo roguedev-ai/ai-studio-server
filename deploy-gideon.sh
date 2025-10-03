@@ -157,7 +157,7 @@ docker compose down 2>/dev/null || docker-compose down 2>/dev/null || true
 echo "Building Docker image..."
 CACHE_BUSTER=$(date +%s)
 PACKAGE_JSON_CHECKSUM=$(md5sum lobe-chat-custom/package.json | cut -d' ' -f1 2>/dev/null || sha256sum lobe-chat-custom/package.json | cut -d' ' -f1 2>/dev/null)
-if docker compose build --build-arg CACHE_BUSTER=$CACHE_BUSTER --build-arg APP_URL=$DEPLOYMENT_URL --build-arg PACKAGE_JSON_CHECKSUM=$PACKAGE_JSON_CHECKSUM 2>&1; then
+if docker compose build --build-arg CACHE_BUSTER=$CACHE_BUSTER --build-arg APP_URL=$DEPLOYMENT_URL --build-arg PACKAGE_JSON_CHECKSUM=$PACKAGE_JSON_CHECKSUM --build-arg NEXT_PUBLIC_SERVICE_MODE=server 2>&1; then
     echo "✅ Build successful!"
 else
     echo "❌ Build failed. Check the errors above."
