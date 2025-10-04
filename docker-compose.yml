@@ -26,6 +26,7 @@ services:
       # Database
       - DATABASE_DRIVER=node
       - DATABASE_URL=${DATABASE_URL:-postgresql://gideon:password@postgres:5432/gideon_studio}
+      - DATABASE_URL_NON_POOLING=${DATABASE_URL_NON_POOLING:-postgresql://gideon:password@postgres:5432/gideon_studio}
       # Authentication - Use deployment URL from .env.local
       - NEXTAUTH_URL=${NEXTAUTH_URL:-http://localhost:3000}
       - APP_URL=${APP_URL:-http://localhost:3000}
@@ -48,9 +49,17 @@ services:
     volumes:
       - ./data:/app/data
     depends_on:
-      - postgres
-      - chromadb
-      - minio
+      postgres:
+        condition: service_healthy
+      chromadb:
+        condition: service_healthy
+      minio:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:3210/health || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
 
   postgres:
     image: pgvector/pgvector:pg15
