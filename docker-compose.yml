@@ -22,8 +22,8 @@ services:
       - NEXT_PUBLIC_APP_NAME=Gideon Studio
       - NEXT_PUBLIC_APP_DESCRIPTION=Your Personal AI Studio
       - NEXT_PUBLIC_APP_URL=${NEXT_PUBLIC_APP_URL:-https://ai.gideon.studio}
-      # Feature Flags - Disable Discover/Market
-      - FEATURE_FLAGS=-market
+      # Feature Flags - Disable Discover/Market and Auth
+      - FEATURE_FLAGS=-market,-auth
       # Database
       - DATABASE_DRIVER=node
       - DATABASE_URL=${DATABASE_URL:-postgresql://gideon:password@postgres:5432/gideon_studio}
@@ -42,6 +42,11 @@ services:
       - GOOGLE_API_KEY=${GOOGLE_API_KEY:-your-google-gemini-api-key}
       # ChromaDB Connection
       - CHROMADB_URL=http://chromadb:8000
+      # DISABLE AUTHENTICATION FOR TESTING
+      - NEXTAUTH_ENABLED=0
+      - NEXTAUTH_DISABLED=1
+      - DISABLE_AUTH=1
+      - ENABLE_AUTH=0
       # Additional LLMs (optional)
       # - OPENAI_API_KEY=${OPENAI_API_KEY}
       # - ANTHROPIC_API_KEY=${ANTHROPIC_API_KEY}
