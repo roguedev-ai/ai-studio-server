@@ -7,7 +7,7 @@ services:
       args:
         FEATURE_FLAGS: "-market"
         NEXT_PUBLIC_SERVICE_MODE: "server"
-        NEXT_PUBLIC_ENABLE_NEXT_AUTH: "0"
+        NEXT_PUBLIC_ENABLE_NEXT_AUTH: "1"
     ports:
       - "3000:3210"
     deploy:
@@ -42,11 +42,13 @@ services:
       - GOOGLE_API_KEY=${GOOGLE_API_KEY:-your-google-gemini-api-key}
       # ChromaDB Connection
       - CHROMADB_URL=http://chromadb:8000
-      # DISABLE AUTHENTICATION FOR TESTING
-      - NEXTAUTH_ENABLED=0
-      - NEXTAUTH_DISABLED=1
-      - DISABLE_AUTH=1
-      - ENABLE_AUTH=0
+      # ENABLE AUTHENTICATION
+      - NEXTAUTH_ENABLED=1
+      - NEXTAUTH_URL=${NEXTAUTH_URL:-http://10.1.10.132:3000/api/auth}
+      - NEXT_AUTH_SECRET=${NEXT_AUTH_SECRET}
+      - NEXT_AUTH_SSO_PROVIDERS=github
+      - AUTH_GITHUB_ID=${GITHUB_CLIENT_ID}
+      - AUTH_GITHUB_SECRET=${GITHUB_CLIENT_SECRET}
       # Additional LLMs (optional)
       # - OPENAI_API_KEY=${OPENAI_API_KEY}
       # - ANTHROPIC_API_KEY=${ANTHROPIC_API_KEY}
