@@ -55,10 +55,11 @@ services:
     depends_on:
       postgres:
         condition: service_healthy
-      chromadb:
-        condition: service_healthy
       minio:
         condition: service_healthy
+      # TEMPORARY: chromadb condition bypassed for Knowledge Base testing
+      # chromadb:
+      #   condition: service_healthy
     healthcheck:
       test: ["CMD-SHELL", "curl -f http://localhost:3210/health || exit 1"]
       interval: 30s
