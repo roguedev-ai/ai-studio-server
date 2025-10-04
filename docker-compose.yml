@@ -23,6 +23,7 @@ services:
       - FEATURE_FLAGS=-market
       # Database
       - NEXT_PUBLIC_SERVICE_MODE=server
+      - DATABASE_DRIVER=node
       - DATABASE_URL=${DATABASE_URL:-postgresql://gideon:password@postgres:5432/gideon_studio}
       # Authentication - Use deployment URL from .env.local
       - NEXTAUTH_URL=${NEXTAUTH_URL:-http://localhost:3000}
@@ -43,15 +44,21 @@ services:
       - chromadb
 
   postgres:
-    image: postgres:15
+    image: pgvector/pgvector:pg15
     environment:
       POSTGRES_DB: gideon_studio
       POSTGRES_USER: gideon
       POSTGRES_PASSWORD: password
     volumes:
       - postgres_data:/var/lib/postgresql/data
+      - ./init-db.sql:/docker-entrypoint-initdb.d/init-db.sql
     ports:
       - "5432:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U gideon -d gideon_studio"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
 
   chromadb:
     image: chromadb/chroma:latest
