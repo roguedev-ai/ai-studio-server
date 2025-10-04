@@ -10,31 +10,64 @@ echo ""
 command -v docker >/dev/null 2>&1 || { echo "❌ Error: docker not found"; exit 1; }
 command -v openssl >/dev/null 2>&1 || { echo "❌ Error: openssl not found"; exit 1; }
 
-# Check if .env exists and has GitHub credentials
-if [ -f .env ] && grep -q "GITHUB_CLIENT_ID" .env && grep -q "GITHUB_CLIENT_SECRET" .env; then
-    echo "✅ Found existing GitHub credentials in .env"
+# Load existing .env values for prompting
+if [ -f .env ]; then
     source .env
-else
-    echo "🔑 GitHub OAuth App Setup Required"
-    echo "------------------------------------"
+    echo "✅ Found existing .env file"
+    echo "📋 Current configuration:"
+    if [ -n "$GITHUB_CLIENT_ID" ]; then
+        echo "   GitHub Client ID: ****${GITHUB_CLIENT_ID: -4}"
+    else
+        echo "   GitHub Client ID: (not set)"
+    fi
+    if [ -n "$GITHUB_CLIENT_SECRET" ]; then
+        echo "   GitHub Client Secret: ****${GITHUB_CLIENT_SECRET: -4}"
+    else
+        echo "   GitHub Client Secret: (not set)"
+    fi
     echo ""
-    echo "📋 Create OAuth App at: https://github.com/settings/developers"
-    echo ""
-    echo "📝 Required settings:"
-    echo "   • Homepage URL: http://10.1.10.132:3000"
-    echo "   • Callback URL:  http://10.1.10.132:3000/api/auth/callback/github"
-    echo ""
-    read -p "ℹ️  Enter GitHub Client ID: " GITHUB_CLIENT_ID
-    read -sp "🔐 Enter GitHub Client Secret: " GITHUB_CLIENT_SECRET
-    echo ""
-    echo ""
+fi
 
-    # Generate secrets
+echo "🔑 GitHub OAuth Configuration"
+echo "------------------------------"
+echo "📋 Create OAuth App at: https://github.com/settings/developers"
+echo ""
+echo "📝 Required OAuth App settings:"
+echo "   • Application Name: Gideon Studio"
+echo "   • Homepage URL: http://10.1.10.132:3000"
+echo "   • Callback URL: http://10.1.10.132:3000/api/auth/callback/github"
+echo ""
+
+# Always ask for GitHub credentials with existing values as defaults
+read -p "ℹ️  Enter GitHub Client ID [${GITHUB_CLIENT_ID:-none}]: " GITHUB_CLIENT_ID_NEW
+read -sp "🔐 Enter GitHub Client Secret: " GITHUB_CLIENT_SECRET_NEW
+echo ""
+echo ""
+
+# Use new values if provided, otherwise keep existing
+if [ -n "$GITHUB_CLIENT_ID_NEW" ]; then
+    GITHUB_CLIENT_ID=$GITHUB_CLIENT_ID_NEW
+fi
+if [ -n "$GITHUB_CLIENT_SECRET_NEW" ]; then
+    GITHUB_CLIENT_SECRET=$GITHUB_CLIENT_SECRET_NEW
+fi
+
+# Validate that we have both credentials
+if [ -z "$GITHUB_CLIENT_ID" ] || [ -z "$GITHUB_CLIENT_SECRET" ]; then
+    echo "❌ Error: GitHub Client ID and Client Secret are required"
+    exit 1
+fi
+
+# Generate secrets if not present
+if [ -z "$NEXT_AUTH_SECRET" ]; then
     NEXT_AUTH_SECRET=$(openssl rand -base64 32)
+fi
+if [ -z "$KEY_VAULTS_SECRET" ]; then
     KEY_VAULTS_SECRET=$(openssl rand -base64 32)
+fi
 
-    # Create .env
-    cat > .env << EOF
+# Update/create .env
+cat > .env << EOF
 NEXT_AUTH_SECRET=$NEXT_AUTH_SECRET
 KEY_VAULTS_SECRET=$KEY_VAULTS_SECRET
 GITHUB_CLIENT_ID=$GITHUB_CLIENT_ID
@@ -42,8 +75,7 @@ GITHUB_CLIENT_SECRET=$GITHUB_CLIENT_SECRET
 GOOGLE_API_KEY=${GOOGLE_API_KEY:-your_google_api_key_here}
 EOF
 
-    echo "✅ Created .env file with credentials"
-fi
+echo "✅ Updated .env file with GitHub credentials"
 
 # Backup docker-compose.yml
 cp docker-compose.yml docker-compose.yml.backup

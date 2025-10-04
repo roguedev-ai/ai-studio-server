@@ -10,41 +10,72 @@ echo ""
 command -v docker >/dev/null 2>&1 || { echo "❌ Error: docker not found"; exit 1; }
 command -v openssl >/dev/null 2>&1 || { echo "❌ Error: openssl not found"; exit 1; }
 
-# Check if .env exists and has Google credentials
-if [ -f .env ] && grep -q "GOOGLE_CLIENT_ID" .env && grep -q "GOOGLE_CLIENT_SECRET" .env; then
-    echo "✅ Found existing Google credentials in .env"
+# Load existing .env values for prompting
+if [ -f .env ]; then
     source .env
-else
-    echo "🔑 Google OAuth App Setup Required"
-    echo "-----------------------------------"
+    echo "✅ Found existing .env file"
+    echo "📋 Current configuration:"
+    if [ -n "$GOOGLE_CLIENT_ID" ]; then
+        echo "   Google Client ID: ****${GOOGLE_CLIENT_ID: -4}"
+    else
+        echo "   Google Client ID: (not set)"
+    fi
+    if [ -n "$GOOGLE_CLIENT_SECRET" ]; then
+        echo "   Google Client Secret: ****${GOOGLE_CLIENT_SECRET: -4}"
+    else
+        echo "   Google Client Secret: (not set)"
+    fi
     echo ""
-    echo "📋 Create OAuth App at: https://console.cloud.google.com/apis/credentials"
-    echo ""
-    echo "📝 Required settings:"
-    echo "   • Application type: Web application"
-    echo "   • Authorized JavaScript origins: http://10.1.10.132:3000"
-    echo "   • Authorized redirect URIs: http://10.1.10.132:3000/api/auth/callback/google"
-    echo ""
-    read -p "ℹ️  Enter Google Client ID: " GOOGLE_CLIENT_ID
-    read -sp "🔐 Enter Google Client Secret: " GOOGLE_CLIENT_SECRET
-    echo ""
-    echo ""
+fi
 
-    # Generate secrets
+echo "🔑 Google OAuth Configuration"
+echo "-----------------------------"
+echo "📋 Create OAuth App at: https://console.cloud.google.com/apis/credentials"
+echo ""
+echo "📝 Required OAuth App settings:"
+echo "   • Application type: Web application"
+echo "   • Authorized JavaScript origins: http://10.1.10.132:3000"
+echo "   • Authorized redirect URIs: http://10.1.10.132:3000/api/auth/callback/google"
+echo ""
+
+# Always ask for Google credentials with existing values as defaults
+read -p "ℹ️  Enter Google Client ID [${GOOGLE_CLIENT_ID:-none}]: " GOOGLE_CLIENT_ID_NEW
+read -sp "🔐 Enter Google Client Secret: " GOOGLE_CLIENT_SECRET_NEW
+echo ""
+echo ""
+
+# Use new values if provided, otherwise keep existing
+if [ -n "$GOOGLE_CLIENT_ID_NEW" ]; then
+    GOOGLE_CLIENT_ID=$GOOGLE_CLIENT_ID_NEW
+fi
+if [ -n "$GOOGLE_CLIENT_SECRET_NEW" ]; then
+    GOOGLE_CLIENT_SECRET=$GOOGLE_CLIENT_SECRET_NEW
+fi
+
+# Validate that we have both credentials
+if [ -z "$GOOGLE_CLIENT_ID" ] || [ -z "$GOOGLE_CLIENT_SECRET" ]; then
+    echo "❌ Error: Google Client ID and Client Secret are required"
+    exit 1
+fi
+
+# Generate secrets if not present
+if [ -z "$NEXT_AUTH_SECRET" ]; then
     NEXT_AUTH_SECRET=$(openssl rand -base64 32)
+fi
+if [ -z "$KEY_VAULTS_SECRET" ]; then
     KEY_VAULTS_SECRET=$(openssl rand -base64 32)
+fi
 
-    # Create .env
-    cat > .env << EOF
+# Update/create .env
+cat > .env << EOF
 NEXT_AUTH_SECRET=$NEXT_AUTH_SECRET
 KEY_VAULTS_SECRET=$KEY_VAULTS_SECRET
 GOOGLE_CLIENT_ID=$GOOGLE_CLIENT_ID
 GOOGLE_CLIENT_SECRET=$GOOGLE_CLIENT_SECRET
-GOOGLE_API_KEY=${GOOGLE_API_KEY:-your_google_api_key_here}
+GOOGLE_API_KEY=${GOOGLE_API_KEY:-your_google_gemini_api_key}
 EOF
 
-    echo "✅ Created .env file with credentials"
-fi
+echo "✅ Updated .env file with Google credentials"
 
 # Backup docker-compose.yml
 cp docker-compose.yml docker-compose.yml.backup

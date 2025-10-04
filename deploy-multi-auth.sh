@@ -10,62 +10,102 @@ echo ""
 command -v docker >/dev/null 2>&1 || { echo "❌ Error: docker not found"; exit 1; }
 command -v openssl >/dev/null 2>&1 || { echo "❌ Error: openssl not found"; exit 1; }
 
-# Check if .env exists and has both sets of credentials
+# Load existing .env values for prompting
+if [ -f .env ]; then
+    source .env
+    echo "✅ Found existing .env file"
+    echo "📋 Current configuration:"
+    if [ -n "$GITHUB_CLIENT_ID" ]; then
+        echo "   GitHub Client ID: ****${GITHUB_CLIENT_ID: -4}"
+    else
+        echo "   GitHub Client ID: (not set)"
+    fi
+    if [ -n "$GITHUB_CLIENT_SECRET" ]; then
+        echo "   GitHub Client Secret: ****${GITHUB_CLIENT_SECRET: -4}"
+    else
+        echo "   GitHub Client Secret: (not set)"
+    fi
+    if [ -n "$GOOGLE_CLIENT_ID" ]; then
+        echo "   Google Client ID: ****${GOOGLE_CLIENT_ID: -4}"
+    else
+        echo "   Google Client ID: (not set)"
+    fi
+    if [ -n "$GOOGLE_CLIENT_SECRET" ]; then
+        echo "   Google Client Secret: ****${GOOGLE_CLIENT_SECRET: -4}"
+    else
+        echo "   Google Client Secret: (not set)"
+    fi
+    echo ""
+fi
+
+echo "🔑 Multi OAuth Configuration (GitHub + Google)"
+echo "----------------------------------------------"
+echo "📋 You can configure either GitHub, Google, or both OAuth providers"
+echo "   OAuth App creation links are provided below"
+echo ""
+
+echo "🔑 GitHub OAuth (Optional)"
+echo "---------------------------"
+echo "📋 Create OAuth App at: https://github.com/settings/developers"
+echo ""
+echo "📝 Required settings:"
+echo "   • Homepage URL: http://10.1.10.132:3000"
+echo "   • Callback URL: http://10.1.10.132:3000/api/auth/callback/github"
+echo ""
+
+# Always ask for GitHub credentials with existing values as defaults
+read -p "ℹ️  Enter GitHub Client ID [${GITHUB_CLIENT_ID:-none}] (or press Enter to skip): " GITHUB_CLIENT_ID_NEW
+if [ -n "$GITHUB_CLIENT_ID_NEW" ]; then
+    read -sp "🔐 Enter GitHub Client Secret: " GITHUB_CLIENT_SECRET_NEW
+    echo ""
+    echo ""
+fi
+
+echo ""
+echo "🔑 Google OAuth (Optional)"
+echo "---------------------------"
+echo "📋 Create OAuth App at: https://console.cloud.google.com/apis/credentials"
+echo ""
+echo "📝 Required settings:"
+echo "   • Application type: Web application"
+echo "   • Authorized JavaScript origins: http://10.1.10.132:3000"
+echo "   • Authorized redirect URIs: http://10.1.10.132:3000/api/auth/callback/google"
+echo ""
+
+# Always ask for Google credentials with existing values as defaults
+read -p "ℹ️  Enter Google Client ID [${GOOGLE_CLIENT_ID:-none}] (or press Enter to skip): " GOOGLE_CLIENT_ID_NEW
+if [ -n "$GOOGLE_CLIENT_ID_NEW" ]; then
+    read -sp "🔐 Enter Google Client Secret: " GOOGLE_CLIENT_SECRET_NEW
+    echo ""
+    echo ""
+fi
+
+# Use new values if provided, otherwise keep existing
+if [ -n "$GITHUB_CLIENT_ID_NEW" ]; then
+    GITHUB_CLIENT_ID=$GITHUB_CLIENT_ID_NEW
+fi
+if [ -n "$GITHUB_CLIENT_SECRET_NEW" ]; then
+    GITHUB_CLIENT_SECRET=$GITHUB_CLIENT_SECRET_NEW
+fi
+if [ -n "$GOOGLE_CLIENT_ID_NEW" ]; then
+    GOOGLE_CLIENT_ID=$GOOGLE_CLIENT_ID_NEW
+fi
+if [ -n "$GOOGLE_CLIENT_SECRET_NEW" ]; then
+    GOOGLE_CLIENT_SECRET=$GOOGLE_CLIENT_SECRET_NEW
+fi
+
+# Track which providers are configured
 has_github=false
 has_google=false
 
-if [ -f .env ]; then
-    if grep -q "GITHUB_CLIENT_ID" .env && grep -q "GITHUB_CLIENT_SECRET" .env; then
-        has_github=true
-        echo "✅ Found GitHub credentials"
-    fi
-    if grep -q "GOOGLE_CLIENT_ID" .env && grep -q "GOOGLE_CLIENT_SECRET" .env; then
-        has_google=true
-        echo "✅ Found Google credentials"
-    fi
+if [ -n "$GITHUB_CLIENT_ID" ] && [ -n "$GITHUB_CLIENT_SECRET" ]; then
+    has_github=true
+    echo "✅ GitHub OAuth configured"
 fi
 
-# Setup GitHub OAuth if missing
-if [ "$has_github" = false ]; then
-    echo ""
-    echo "🔑 GitHub OAuth App Setup Required"
-    echo "------------------------------------"
-    echo ""
-    echo "📋 Create OAuth App at: https://github.com/settings/developers"
-    echo ""
-    echo "📝 Required settings:"
-    echo "   • Homepage URL: http://10.1.10.132:3000"
-    echo "   • Callback URL:  http://10.1.10.132:3000/api/auth/callback/github"
-    echo ""
-    read -p "ℹ️  Enter GitHub Client ID (or press Enter to skip): " GITHUB_CLIENT_ID
-    if [ -n "$GITHUB_CLIENT_ID" ]; then
-        read -sp "🔐 Enter GitHub Client Secret: " GITHUB_CLIENT_SECRET
-        echo ""
-        echo ""
-        has_github=true
-    fi
-fi
-
-# Setup Google OAuth if missing
-if [ "$has_google" = false ]; then
-    echo ""
-    echo "🔑 Google OAuth App Setup Required"
-    echo "-----------------------------------"
-    echo ""
-    echo "📋 Create OAuth App at: https://console.cloud.google.com/apis/credentials"
-    echo ""
-    echo "📝 Required settings:"
-    echo "   • Application type: Web application"
-    echo "   • Authorized JavaScript origins: http://10.1.10.132:3000"
-    echo "   • Authorized redirect URIs: http://10.1.10.132:3000/api/auth/callback/google"
-    echo ""
-    read -p "ℹ️  Enter Google Client ID (or press Enter to skip): " GOOGLE_CLIENT_ID
-    if [ -n "$GOOGLE_CLIENT_ID" ]; then
-        read -sp "🔐 Enter Google Client Secret: " GOOGLE_CLIENT_SECRET
-        echo ""
-        echo ""
-        has_google=true
-    fi
+if [ -n "$GOOGLE_CLIENT_ID" ] && [ -n "$GOOGLE_CLIENT_SECRET" ]; then
+    has_google=true
+    echo "✅ Google OAuth configured"
 fi
 
 # Check if at least one provider is configured
@@ -73,7 +113,7 @@ if [ "$has_github" = false ] && [ "$has_google" = false ]; then
     echo ""
     echo "❌ Error: At least one OAuth provider must be configured!"
     echo ""
-    echo "Please set up credentials for GitHub, Google, or both."
+    echo "Please go back and enter credentials for GitHub, Google, or both."
     exit 1
 fi
 
