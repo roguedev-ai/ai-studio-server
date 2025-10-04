@@ -7,6 +7,7 @@ services:
       args:
         FEATURE_FLAGS: "-market"
         NEXT_PUBLIC_SERVICE_MODE: "server"
+        NEXT_PUBLIC_ENABLE_NEXT_AUTH: "0"
     ports:
       - "3000:3210"
     deploy:
@@ -27,10 +28,8 @@ services:
       - DATABASE_DRIVER=node
       - DATABASE_URL=${DATABASE_URL:-postgresql://gideon:password@postgres:5432/gideon_studio}
       - DATABASE_URL_NON_POOLING=${DATABASE_URL_NON_POOLING:-postgresql://gideon:password@postgres:5432/gideon_studio}
-      # Authentication - Use deployment URL from .env.local
-      - NEXTAUTH_URL=${NEXTAUTH_URL:-http://localhost:3000}
+      # Application URL
       - APP_URL=${APP_URL:-http://localhost:3000}
-      - NEXT_AUTH_SECRET=${NEXT_AUTH_SECRET:-create-a-secure-secret}
       - KEY_VAULTS_SECRET=${KEY_VAULTS_SECRET:-create-a-secure-key}
       # S3 Storage (Required for file uploads and Knowledge Base)
       - S3_ENDPOINT=http://minio:9000
