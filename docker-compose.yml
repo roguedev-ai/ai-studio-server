@@ -3,8 +3,10 @@ services:
   gideon-studio:
     build:
       context: .
+      dockerfile: Dockerfile.database
       args:
         FEATURE_FLAGS: "-market"
+        NEXT_PUBLIC_SERVICE_MODE: "server"
     ports:
       - "3000:3210"
     deploy:
@@ -22,7 +24,6 @@ services:
       # Feature Flags - Disable Discover/Market
       - FEATURE_FLAGS=-market
       # Database
-      - NEXT_PUBLIC_SERVICE_MODE=server
       - DATABASE_DRIVER=node
       - DATABASE_URL=${DATABASE_URL:-postgresql://gideon:password@postgres:5432/gideon_studio}
       # Authentication - Use deployment URL from .env.local
@@ -30,6 +31,13 @@ services:
       - APP_URL=${APP_URL:-http://localhost:3000}
       - NEXT_AUTH_SECRET=${NEXT_AUTH_SECRET:-create-a-secure-secret}
       - KEY_VAULTS_SECRET=${KEY_VAULTS_SECRET:-create-a-secure-key}
+      # S3 Storage (Required for file uploads and Knowledge Base)
+      - S3_ENDPOINT=http://minio:9000
+      - S3_BUCKET=gideon-files
+      - S3_ACCESS_KEY_ID=${S3_ACCESS_KEY_ID:-minioadmin}
+      - S3_SECRET_ACCESS_KEY=${S3_SECRET_ACCESS_KEY:-minioadmin}
+      - S3_PUBLIC_DOMAIN=http://localhost:9000
+      - S3_ENABLE_PATH_STYLE=1
       # Google Gemini (set your API key here)
       - GOOGLE_API_KEY=${GOOGLE_API_KEY:-your-google-gemini-api-key}
       # ChromaDB Connection
@@ -42,6 +50,7 @@ services:
     depends_on:
       - postgres
       - chromadb
+      - minio
 
   postgres:
     image: pgvector/pgvector:pg15
@@ -82,5 +91,25 @@ services:
       timeout: 10s
       retries: 3
 
+  minio:
+    image: minio/minio:latest
+    container_name: gideon-minio
+    ports:
+      - "9000:9000"
+      - "9001:9001"
+    environment:
+      MINIO_ROOT_USER: minioadmin
+      MINIO_ROOT_PASSWORD: minioadmin
+    volumes:
+      - minio_data:/data
+    command: server /data --console-address ":9001"
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:9000/minio/health/live"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    restart: unless-stopped
+
 volumes:
   chromadb_data:
+  minio_data:
