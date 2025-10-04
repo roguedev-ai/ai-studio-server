@@ -2,7 +2,7 @@ version: '3.8'
 services:
   gideon-studio:
     build:
-      context: .
+      context: ./lobe-chat-custom
       dockerfile: Dockerfile.database
       args:
         FEATURE_FLAGS: "-market"
