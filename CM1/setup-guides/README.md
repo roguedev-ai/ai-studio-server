@@ -130,6 +130,7 @@ sudo ./setup-reverse-proxy.sh
 
 ### Recovery Procedures
 - **OAuth Reconfiguration**: Rerun deployment script with new credentials
+- **Manual .env Fix**: Run `./fix-env-vars.sh` if OAuth scripts fail to create .env
 - **SSL Reconfiguration**: Nginx backups in `/etc/nginx/backup-pre-gideon-*.tar.gz`
 - **Docker Configuration**: Saved in `/opt/gideon-docker-compose-*.yml.backup`
 
