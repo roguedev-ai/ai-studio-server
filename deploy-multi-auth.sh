@@ -10,6 +10,32 @@ echo ""
 command -v docker >/dev/null 2>&1 || { echo "❌ Error: docker not found"; exit 1; }
 command -v openssl >/dev/null 2>&1 || { echo "❌ Error: openssl not found"; exit 1; }
 
+# Function to safely read from .env
+get_env_value() {
+    local key=$1
+    if [ -f .env ]; then
+        grep "^${key}=" .env 2>/dev/null | cut -d'=' -f2- | head -1 | tr -d '\r\n'
+    fi
+}
+
+# Function to validate and clean input
+validate_input() {
+    local input="$1"
+    # Remove any literal \n and trim
+    input=$(echo "$input" | sed 's/\\n//g' | xargs)
+    echo "$input"
+}
+
+# Clean corrupted .env if exists
+if [ -f .env ]; then
+    if grep -q '\\n' .env 2>/dev/null; then
+        echo "⚠️  Detected corrupted .env file (contains literal \\n)"
+        echo "   Creating backup: .env.corrupted"
+        mv .env .env.corrupted
+        echo "   Starting fresh..."
+    fi
+fi
+
 # Load existing .env values for prompting (safely)
 GITHUB_CLIENT_ID=""
 GITHUB_CLIENT_SECRET=""
