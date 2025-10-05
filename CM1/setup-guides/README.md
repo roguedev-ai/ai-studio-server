@@ -13,6 +13,11 @@ This folder contains all automated deployment and setup scripts for Gideon Studi
 
 **Purpose**: Enables Knowledge Base authentication with GitHub/Google OAuth
 
+### Branding & Visual Customization
+- **`deploy-branding.sh`** - Safe custom branding deployment with rollback
+
+**Purpose**: Apply custom logos, colors, CSS, and branding to Gideon Studio interface
+
 ### Production Infrastructure Setup
 - **`setup-reverse-proxy.sh`** - Nginx SSL reverse proxy configuration
 
@@ -34,7 +39,19 @@ This folder contains all automated deployment and setup scripts for Gideon Studi
 
 **Input Required:** OAuth credentials, auto-generates secrets, tests configuration
 
-### 2. Configure SSL/HTTPS (If needed)
+### 2. Customize Branding (Optional)
+```bash
+# Apply custom logo, colors, and styling
+./deploy-branding.sh
+
+# Preview changes without applying them
+./deploy-branding.sh --dry-run
+```
+
+**Input Required:** Asset locations, branding information, company details, color schemes
+**Features:** Automatic rollback scripts, validation, and recovery procedures
+
+### 3. Configure SSL/HTTPS (If needed)
 ```bash
 # For production OAuth compatibility
 sudo ./setup-reverse-proxy.sh
@@ -42,10 +59,11 @@ sudo ./setup-reverse-proxy.sh
 
 **Input Required:** SSL certificates, domain configuration, automatic docker-compose updates
 
-### 3. Access Production System
+### 4. Access Production System
 - **URL**: `https://your-domain.com`
 - **Authentication**: OAuth provider login
 - **Knowledge Base**: `/files` endpoint fully accessible
+- **Branding**: Custom logo, colors, and styling applied
 
 ## 📊 Deployment Flow
 
@@ -101,6 +119,27 @@ sudo ./setup-reverse-proxy.sh
 - Updates docker-compose.yml for multiple providers
 - Shows OAuth configuration for each enabled provider
 
+### Branding Deployment Script (`deploy-branding.sh`)
+- **Interactive custom branding deployment** with full safety features
+- **Automatic backup creation** before any file modifications
+- **File validation** and asset copying (logo, favicon, CSS, welcome content)
+- **Color customization** with primary/secondary hex color validation
+- **Environment configuration** with branding variables and defaults
+- **Automatic rollback script generation** for one-click recovery
+- **Dry-run preview mode** (`--dry-run`) to see changes without deploying
+- **Container rebuild coordination** with health checks
+- **Comprehensive deployment summary** with next steps
+
+**Key Features:**
+- ✅ Interactive prompts for all branding assets
+- ✅ Generates default logo/SVG if none provided
+- ✅ Creates custom CSS with user's color scheme
+- ✅ Adds welcome content with company information
+- ✅ Automatic rollback scripts (timestamped)
+- ✅ Pre-flight validation and file existence checks
+- ✅ Color hex code validation for correctness
+- ✅ Manual .env update instructions (avoids automatic modification)
+
 ### Reverse Proxy Script (`setup-reverse-proxy.sh`)
 - Configures professional nginx reverse proxy
 - **SSL validation for RSA and ECDSA keys** (supports Let's Encrypt certificates)
@@ -138,6 +177,7 @@ sudo ./setup-reverse-proxy.sh
 
 | Script | Input Required | Time | Root Access | Services Modified |
 |--------|---------------|------|-------------|-------------------|
+| Branding Deployment | Assets, branding info | 10min | No | Docker containers |
 | GitHub OAuth | Credentials | 15min | No | Docker containers |
 | Google OAuth | Credentials | 15min | No | Docker containers |
 | Multi OAuth | 1-2 Providers | 15min | No | Docker containers |

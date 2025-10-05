@@ -25,6 +25,7 @@ Build systematic continuity and roadmap planning for Gideon Studio evolution bey
 - **[PHASE-2-COMPLETION-SUMMARY.md](PHASE-2-COMPLETION-SUMMARY.md)**: Executive summary of full Phase 2 achievement
 - **[phase-planning/phase-2-roadmap.md](phase-planning/phase-2-roadmap.md)**: Detailed completion status (updated to reflect delivery)
 - **[MANUAL-OAUTH-SETUP.md](../MANUAL-OAUTH-SETUP.md)**: Authentication deployment guide
+- **[BRANDING DEPLOYMENT](../deploy-branding.sh)**: Safe custom branding deployment with rollback
 
 ## 📁 CM1 Structure
 
