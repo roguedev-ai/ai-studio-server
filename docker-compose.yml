@@ -21,7 +21,7 @@ services:
       # Gideon Studio Branding
       - NEXT_PUBLIC_APP_NAME=Gideon Studio
       - NEXT_PUBLIC_APP_DESCRIPTION=Your Personal AI Studio
-      - NEXT_PUBLIC_APP_URL=${NEXT_PUBLIC_APP_URL:-https://ai.gideon.studio}
+      - NEXT_PUBLIC_APP_URL=${NEXT_PUBLIC_APP_URL:-https://studio.euctools.ai}
       # Feature Flags - Disable Discover/Market and Auth
       - FEATURE_FLAGS=-market,-auth
       # Database
@@ -44,7 +44,7 @@ services:
       - CHROMADB_URL=http://chromadb:8000
       # NextAuth SSO Configuration
       - NEXTAUTH_ENABLED=1
-      - NEXTAUTH_URL=${NEXTAUTH_URL:-https://ai.gideon.studio/api/auth}
+      - NEXTAUTH_URL=${NEXTAUTH_URL:-https://studio.euctools.ai/api/auth}
       - NEXT_AUTH_SECRET=${NEXT_AUTH_SECRET}
       - NEXT_AUTH_SSO_PROVIDERS=github
       # OAuth Provider Credentials (from .env file)
