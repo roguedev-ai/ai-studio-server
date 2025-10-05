@@ -10,31 +10,54 @@ echo ""
 command -v docker >/dev/null 2>&1 || { echo "❌ Error: docker not found"; exit 1; }
 command -v openssl >/dev/null 2>&1 || { echo "❌ Error: openssl not found"; exit 1; }
 
-# Load existing .env values for prompting
+# Load existing .env values for prompting (safely)
+GITHUB_CLIENT_ID=""
+GITHUB_CLIENT_SECRET=""
+GOOGLE_CLIENT_ID=""
+GOOGLE_CLIENT_SECRET=""
+
 if [ -f .env ]; then
-    source .env
     echo "✅ Found existing .env file"
     echo "📋 Current configuration:"
-    if [ -n "$GITHUB_CLIENT_ID" ]; then
-        echo "   GitHub Client ID: ****${GITHUB_CLIENT_ID: -4}"
-    else
-        echo "   GitHub Client ID: (not set)"
-    fi
-    if [ -n "$GITHUB_CLIENT_SECRET" ]; then
-        echo "   GitHub Client Secret: ****${GITHUB_CLIENT_SECRET: -4}"
-    else
-        echo "   GitHub Client Secret: (not set)"
-    fi
-    if [ -n "$GOOGLE_CLIENT_ID" ]; then
-        echo "   Google Client ID: ****${GOOGLE_CLIENT_ID: -4}"
-    else
-        echo "   Google Client ID: (not set)"
-    fi
-    if [ -n "$GOOGLE_CLIENT_SECRET" ]; then
-        echo "   Google Client Secret: ****${GOOGLE_CLIENT_SECRET: -4}"
-    else
-        echo "   Google Client Secret: (not set)"
-    fi
+
+    # Read individual variables safely
+    while IFS='=' read -r key value; do
+        case $key in
+            GITHUB_CLIENT_ID)
+                GITHUB_CLIENT_ID="$value"
+                if [ -n "$GITHUB_CLIENT_ID" ]; then
+                    echo "   GitHub Client ID: ****${GITHUB_CLIENT_ID: -4}"
+                else
+                    echo "   GitHub Client ID: (not set)"
+                fi
+                ;;
+            GITHUB_CLIENT_SECRET)
+                GITHUB_CLIENT_SECRET="$value"
+                if [ -n "$GITHUB_CLIENT_SECRET" ]; then
+                    echo "   GitHub Client Secret: ****${GITHUB_CLIENT_SECRET: -4}"
+                else
+                    echo "   GitHub Client Secret: (not set)"
+                fi
+                ;;
+            GOOGLE_CLIENT_ID)
+                GOOGLE_CLIENT_ID="$value"
+                if [ -n "$GOOGLE_CLIENT_ID" ]; then
+                    echo "   Google Client ID: ****${GOOGLE_CLIENT_ID: -4}"
+                else
+                    echo "   Google Client ID: (not set)"
+                fi
+                ;;
+            GOOGLE_CLIENT_SECRET)
+                GOOGLE_CLIENT_SECRET="$value"
+                if [ -n "$GOOGLE_CLIENT_SECRET" ]; then
+                    echo "   Google Client Secret: ****${GOOGLE_CLIENT_SECRET: -4}"
+                else
+                    echo "   Google Client Secret: (not set)"
+                fi
+                ;;
+        esac
+    done < .env
+
     echo ""
 fi
 

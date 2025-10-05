@@ -10,21 +10,36 @@ echo ""
 command -v docker >/dev/null 2>&1 || { echo "❌ Error: docker not found"; exit 1; }
 command -v openssl >/dev/null 2>&1 || { echo "❌ Error: openssl not found"; exit 1; }
 
-# Load existing .env values for prompting
+# Load existing .env values for prompting (safely)
+GOOGLE_CLIENT_ID=""
+GOOGLE_CLIENT_SECRET=""
+
 if [ -f .env ]; then
-    source .env
     echo "✅ Found existing .env file"
     echo "📋 Current configuration:"
-    if [ -n "$GOOGLE_CLIENT_ID" ]; then
-        echo "   Google Client ID: ****${GOOGLE_CLIENT_ID: -4}"
-    else
-        echo "   Google Client ID: (not set)"
-    fi
-    if [ -n "$GOOGLE_CLIENT_SECRET" ]; then
-        echo "   Google Client Secret: ****${GOOGLE_CLIENT_SECRET: -4}"
-    else
-        echo "   Google Client Secret: (not set)"
-    fi
+
+    # Read individual variables safely
+    while IFS='=' read -r key value; do
+        case $key in
+            GOOGLE_CLIENT_ID)
+                GOOGLE_CLIENT_ID="$value"
+                if [ -n "$GOOGLE_CLIENT_ID" ]; then
+                    echo "   Google Client ID: ****${GOOGLE_CLIENT_ID: -4}"
+                else
+                    echo "   Google Client ID: (not set)"
+                fi
+                ;;
+            GOOGLE_CLIENT_SECRET)
+                GOOGLE_CLIENT_SECRET="$value"
+                if [ -n "$GOOGLE_CLIENT_SECRET" ]; then
+                    echo "   Google Client Secret: ****${GOOGLE_CLIENT_SECRET: -4}"
+                else
+                    echo "   Google Client Secret: (not set)"
+                fi
+                ;;
+        esac
+    done < .env
+
     echo ""
 fi
 
