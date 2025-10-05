@@ -89,15 +89,48 @@ while true; do
     break
 done
 
-# Validate SSL certificate and key match
+# Validate SSL certificate and private key (supports RSA and ECDSA)
 echo "🔍 Validating SSL certificate and private key..."
-CERT_MODULUS=$(openssl x509 -noout -modulus -in "$SSL_CERT" | openssl md5)
-KEY_MODULUS=$(openssl rsa -noout -modulus -in "$SSL_KEY" | openssl md5)
 
-if [ "$CERT_MODULUS" != "$KEY_MODULUS" ]; then
-    echo "❌ Error: SSL certificate and private key don't match"
+# Verify files are readable
+if ! openssl x509 -in "$SSL_CERT" -noout 2>/dev/null; then
+    echo "❌ Error: Cannot read SSL certificate"
     exit 1
 fi
+
+if ! openssl pkey -in "$SSL_KEY" -noout 2>/dev/null; then
+    echo "❌ Error: Cannot read SSL private key"
+    exit 1
+fi
+
+# Detect key type and validate accordingly
+KEY_TYPE=$(openssl pkey -in "$SSL_KEY" -text -noout 2>/dev/null | head -1)
+
+if echo "$KEY_TYPE" | grep -qi "rsa"; then
+    echo "   ✅ Detected RSA key"
+    CERT_MOD=$(openssl x509 -noout -modulus -in "$SSL_CERT" | openssl md5)
+    KEY_MOD=$(openssl rsa -noout -modulus -in "$SSL_KEY" | openssl md5)
+
+    if [ "$CERT_MOD" != "$KEY_MOD" ]; then
+        echo "❌ Error: Certificate and key don't match"
+        exit 1
+    fi
+
+elif echo "$KEY_TYPE" | grep -qi "private-key"; then
+    echo "   ✅ Detected ECDSA key"
+    CERT_PUB=$(openssl x509 -in "$SSL_CERT" -pubkey -noout | openssl md5)
+    KEY_PUB=$(openssl pkey -in "$SSL_KEY" -pubout | openssl md5)
+
+    if [ "$CERT_PUB" != "$KEY_PUB" ]; then
+        echo "❌ Error: Certificate and key don't match"
+        exit 1
+    fi
+else
+    echo "❌ Error: Unknown key type: $KEY_TYPE"
+    exit 1
+fi
+
+echo "✅ Certificate and key are valid and match"
 
 # Check certificate validity
 if ! openssl x509 -checkend 86400 -noout -in "$SSL_CERT"; then
