@@ -64,7 +64,26 @@ fi
 if [ -z "$PROVIDERS" ]; then
     echo ""
     echo "❌ ERROR: No OAuth providers configured!"
-    echo "   Run a deployment script to configure authentication"
+    echo ""
+    echo "🔧 TROUBLESHOOTING - If variables aren't detected:"
+    echo ""
+    echo "1. Check if .env file has correct variables:"
+    echo "   cat .env"
+    echo ""
+    echo "2. Run manual .env setup:"
+    echo "   ./fix-env-vars.sh"
+    echo ""
+    echo "3. Run individual OAuth scripts:"
+    echo "   ./deploy-github-auth.sh  # for GitHub OAuth only"
+    echo "   ./deploy-google-auth.sh  # for Google OAuth only"
+    echo "   ./deploy-multi-auth.sh   # for both providers"
+    echo ""
+    echo "4. Verify container can read variables:"
+    echo "   docker compose exec gideon-studio env | grep -E 'GITHUB|GOOGLE'"
+    echo ""
+    echo "5. Check for corrupt characters in .env:"
+    echo "   grep -P '[^\x00-\x7F]' .env"
+    echo ""
     exit 1
 fi
 
@@ -117,14 +136,57 @@ echo "🔍 Current URL Configuration:"
 echo "   NEXTAUTH_URL: $CURRENT_NEXTAUTH_URL"
 echo "   APP_URL: $(echo "$CURRENT_APP_URL" | sed 's/.*APP_URL=//')"
 
-TARGET_FETCH_URL="http://10.1.10.132:3000/api/auth/adapter"
+# Check if reverse proxy is configured (HTTPS domain-based URLs)
+if echo "$CURRENT_APP_URL" | grep -q "https://" && echo "$CURRENT_APP_URL" | grep -q "/"; then
+    DOMAIN_URL=$(echo "$CURRENT_APP_URL" | sed 's|.*APP_URL=||')
+    echo ""
+    echo "🔐 REVERSE PROXY DETECTED:"
+    echo "   Domain URL: $DOMAIN_URL"
+    echo "   Access Gideon Studio via: $DOMAIN_URL"
+    echo ""
+    echo "🧪 OAuth Testing Steps (with reverse proxy):"
+    echo "   1. Visit $DOMAIN_URL in your browser"
+    echo "   2. Ensure SSL certificate is valid"
+    echo "   3. Click 'Sign in' button"
+    echo "   4. Choose your OAuth provider ($PROVIDERS)"
+    echo "   5. Authorize the application"
+    echo "   6. Access Knowledge Base: /files"
 
-if echo "$CURRENT_NEXTAUTH_URL" | grep -q "10.11.":; then
+    # Check if OAuth callback URLs need domain-based updates
+    echo ""
+    echo "🚨 IMPORTANT: Update OAuth provider callback URLs to use domain:"
+    if [ -n "$GITHUB_ID$GITHUB_OAUTH_ID" ]; then
+        echo "   GitHub: ${DOMAIN_URL}/api/auth/callback/github"
+    fi
+    if [ -n "$GOOGLE_ID$GOOGLE_OAUTH_ID" ]; then
+        echo "   Google: ${DOMAIN_URL}/api/auth/callback/google"
+    fi
+    echo ""
+    echo "✅ Your nginx reverse proxy will automatically redirect HTTP to HTTPS"
+
+elif echo "$CURRENT_NEXTAUTH_URL" | grep -q "10.11.":; then
     echo ""
     echo "⚠️  NEXTAUTH_URL uses old IP address, updating to 10.1.10.132"
     cp docker-compose.yml docker-compose.yml.url-backup
     sed -i 's/NEXTAUTH_URL.*/NEXTAUTH_URL=http:\/\/10.1.10.132:3000\/api\/auth/' docker-compose.yml
-    echo "✅ Updated NEXTAUTH_URL"
+    echo "✅ Updated NEXTAUTH_URL to direct IP access"
+
+    echo ""
+    echo "🧪 OAuth Testing Steps (direct IP access):"
+    echo "   1. Visit http://10.1.10.132:3000 in your browser"
+    echo "   2. Click 'Sign in' button"
+    echo "   3. Choose your OAuth provider ($PROVIDERS)"
+    echo "   4. Authorize the application"
+    echo "   5. Access Knowledge Base: /files"
+else
+    echo ""
+    echo "📡 URL Configuration:"
+    if echo "$CURRENT_NEXTAUTH_URL" | grep -q "10.1.10.132"; then
+        echo "   ✓ Using standard server IP configuration"
+        echo "   🎯 Access via: http://10.1.10.132:3000"
+    else
+        echo "   ? Unknown URL configuration - may need manual review"
+    fi
 fi
 
 # Part 4: OAuth Provider Configuration Verification
