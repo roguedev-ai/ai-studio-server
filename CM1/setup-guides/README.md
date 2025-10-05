@@ -103,6 +103,7 @@ sudo ./setup-reverse-proxy.sh
 
 ### Reverse Proxy Script (`setup-reverse-proxy.sh`)
 - Configures professional nginx reverse proxy
+- **SSL validation for RSA and ECDSA keys** (supports Let's Encrypt certificates)
 - Implements SSL termination with security headers
 - Updates Docker environment variables to HTTPS URLs
 - Enables WebSocket support and large file handling
