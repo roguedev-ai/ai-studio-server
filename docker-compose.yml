@@ -42,13 +42,18 @@ services:
       - GOOGLE_API_KEY=${GOOGLE_API_KEY:-your-google-gemini-api-key}
       # ChromaDB Connection
       - CHROMADB_URL=http://chromadb:8000
-      # ENABLE AUTHENTICATION
+      # NextAuth SSO Configuration
       - NEXTAUTH_ENABLED=1
-      - NEXTAUTH_URL=${NEXTAUTH_URL:-http://10.1.10.132:3000/api/auth}
+      - NEXTAUTH_URL=${NEXTAUTH_URL:-http://localhost:3000/api/auth}
       - NEXT_AUTH_SECRET=${NEXT_AUTH_SECRET}
-      - NEXT_AUTH_SSO_PROVIDERS=github
+      - NEXT_AUTH_SSO_PROVIDERS=github,google
+      # OAuth Provider Credentials (from .env file)
       - AUTH_GITHUB_ID=${GITHUB_CLIENT_ID}
       - AUTH_GITHUB_SECRET=${GITHUB_CLIENT_SECRET}
+      - AUTH_GOOGLE_ID=${GOOGLE_CLIENT_ID}
+      - AUTH_GOOGLE_SECRET=${GOOGLE_CLIENT_SECRET}
+      # Enable OAuth in client
+      - NEXT_PUBLIC_ENABLE_NEXT_AUTH=1
       # Additional LLMs (optional)
       # - OPENAI_API_KEY=${OPENAI_API_KEY}
       # - ANTHROPIC_API_KEY=${ANTHROPIC_API_KEY}
