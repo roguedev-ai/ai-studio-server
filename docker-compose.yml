@@ -28,27 +28,25 @@ services:
       - DATABASE_DRIVER=node
       - DATABASE_URL=${DATABASE_URL:-postgresql://gideon:password@postgres:5432/gideon_studio}
       - DATABASE_URL_NON_POOLING=${DATABASE_URL_NON_POOLING:-postgresql://gideon:password@postgres:5432/gideon_studio}
-      # Application URLs - Critical NextAuth Router Fixes
-      # Internal URL for container (must be port 3210, not 3000)
-      - APP_URL=http://localhost:3210
-      # External URL for public access
-      - NEXT_PUBLIC_APP_URL=${NEXT_PUBLIC_APP_URL:-https://studio.euctools.ai}
+      # Application URLs - NextAuth FIXED for External Access
+      # External URL (nginx proxy - what users access)
+      - APP_URL=https://studio.euctools.ai
+      - NEXT_PUBLIC_APP_URL=https://studio.euctools.ai
       - KEY_VAULTS_SECRET=${KEY_VAULTS_SECRET:-create-a-secure-key}
       # S3 Storage (Required for file uploads and Knowledge Base)
       - S3_ENDPOINT=http://minio:9000
       - S3_BUCKET=gideon-files
       - S3_ACCESS_KEY_ID=${S3_ACCESS_KEY_ID:-minioadmin}
       - S3_SECRET_ACCESS_KEY=${S3_SECRET_ACCESS_KEY:-minioadmin}
-      - S3_PUBLIC_DOMAIN=http://localhost:9000
+      - S3_PUBLIC_DOMAIN=https://studio.euctools.ai/s3
       - S3_ENABLE_PATH_STYLE=1
       # Google Gemini (set your API key here)
       - GOOGLE_API_KEY=${GOOGLE_API_KEY:-your-google-gemini-api-key}
       # ChromaDB Connection
       - CHROMADB_URL=http://chromadb:8000
-      # NextAuth SSO Configuration - FIXED INTERNAL URLs
+      # NextAuth SSO Configuration - CORRECTED External URLs
       - NEXTAUTH_ENABLED=1
-      - NEXTAUTH_URL=http://localhost:3210/api/auth
-      - AUTH_URL=http://localhost:3210/api/auth  # Fallback URL
+      - NEXTAUTH_URL=https://studio.euctools.ai/api/auth
       - NEXT_AUTH_SECRET=${NEXT_AUTH_SECRET}
       - NEXT_AUTH_SSO_PROVIDERS=github,google
       # OAuth Provider Credentials (from .env file)
