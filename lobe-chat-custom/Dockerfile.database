@@ -1,5 +1,5 @@
 ## Set global build ENV
-ARG NODEJS_VERSION="20"
+ARG NODEJS_VERSION="22"
 
 ## Base image for all building stages
 FROM node:${NODEJS_VERSION}-slim AS base
@@ -99,11 +99,11 @@ RUN \
     && corepack use $(sed -n 's/.*"packageManager": "\(.*\)".*/\1/p' package.json) \
     # Install the dependencies
     && pnpm i \
-    # Add db migration dependencies
+    # Add db migration dependencies with PostgreSQL 15 compatible client
     && mkdir -p /deps \
     && cd /deps \
     && pnpm init \
-    && pnpm add pg drizzle-orm
+    && pnpm add pg@8.11.3 drizzle-orm
 
 COPY . .
 
