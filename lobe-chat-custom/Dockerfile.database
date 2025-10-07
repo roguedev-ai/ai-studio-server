@@ -98,12 +98,7 @@ RUN \
     # Use pnpm for corepack
     && corepack use $(sed -n 's/.*"packageManager": "\(.*\)".*/\1/p' package.json) \
     # Install the dependencies
-    && pnpm i \
-    # Add db migration dependencies with PostgreSQL 15 compatible client
-    && mkdir -p /deps \
-    && cd /deps \
-    && pnpm init \
-    && pnpm add pg@8.11.3 drizzle-orm
+    && pnpm i
 
 COPY . .
 
@@ -124,10 +119,10 @@ COPY --from=builder /app/packages/database/migrations /app/migrations
 COPY --from=builder /app/scripts/migrateServerDB/docker.cjs /app/docker.cjs
 COPY --from=builder /app/scripts/migrateServerDB/errorHint.js /app/errorHint.js
 
-# copy dependencies
-COPY --from=builder /deps/node_modules/.pnpm /app/node_modules/.pnpm
-COPY --from=builder /deps/node_modules/pg /app/node_modules/pg
-COPY --from=builder /deps/node_modules/drizzle-orm /app/node_modules/drizzle-orm
+# copy dependencies (installed in build step above)
+COPY --from=builder /app/node_modules/.pnpm /app/node_modules/.pnpm
+COPY --from=builder /app/node_modules/pg /app/node_modules/pg
+COPY --from=builder /app/node_modules/drizzle-orm /app/node_modules/drizzle-orm
 
 # Copy server launcher
 COPY --from=builder /app/scripts/serverLauncher/startServer.js /app/startServer.js
