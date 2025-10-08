@@ -22,8 +22,8 @@ services:
       - NEXT_PUBLIC_APP_NAME=Gideon Studio
       - NEXT_PUBLIC_APP_DESCRIPTION=Your Personal AI Studio
       - NEXT_PUBLIC_APP_URL=${NEXT_PUBLIC_APP_URL:-https://studio.euctools.ai}
-      # Feature Flags - Disable Discover/Market and Auth
-      - FEATURE_FLAGS=-market,-auth
+      # Feature Flags - Disable Discover/Market only (ENABLE authentication)
+      - FEATURE_FLAGS=-market
       # Database
       - DATABASE_DRIVER=node
       - DATABASE_URL=${DATABASE_URL:-postgresql://gideon:password@postgres:5432/gideon_studio}
