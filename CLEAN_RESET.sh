@@ -27,7 +27,11 @@ docker rm -f $(docker ps -aq) 2>/dev/null || true
 echo -e "${YELLOW}4. Removing old Gideon Studio images...${NC}"
 docker images | grep -E "(ai-studio-server|gideon)" | awk '{print $3}' | xargs docker rmi -f 2>/dev/null || true
 
-echo -e "${YELLOW}5. Clean verified - checking state...${NC}"
+# Remove project-specific volumes (the key one you found!)
+echo -e "${YELLOW}5. Removing project volumes...${NC}"
+docker volume ls | grep "^local.*ai-studio-server" | awk '{print $2}' | xargs docker volume rm -f 2>/dev/null || true
+
+echo -e "${YELLOW}6. Clean verified - checking state...${NC}"
 echo "Active containers:"
 docker ps -a
 echo ""

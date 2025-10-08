@@ -25,32 +25,51 @@ cat .env
 # GOOGLE_CLIENT_SECRET=<your Google OAuth app client secret>
 ```
 
-### 4. Stop and clean existing deployment
+### 4. COMPLETE CLEANUP (removes all conflicting containers/volumes)
 ```bash
-docker compose down
-docker rmi ai-studio-server-gideon-studio
-docker builder prune -f
+# Run the comprehensive cleanup script
+./CLEAN_RESET.sh
+
+# OR manually execute these commands:
+docker stop $(docker ps -q) 2>/dev/null
+docker rm -f $(docker ps -aq) 2>/dev/null
+docker system prune -af --volumes
+docker volume prune -f
+docker volume rm ai-studio-server_chromadb_data ai-studio-server_minio_data 2>/dev/null || true
 ```
 
-### 5. Rebuild with new configuration
+### 5. Verify credential format in .env
 ```bash
-docker compose build --no-cache gideon-studio
+# Check for quotes/spaces that break OAuth (Docker Compose doesn't unquote values)
+cat .env | grep -E "AUTH_GITHUB|AUTH_GOOGLE"
+
+# Make sure credentials look EXACTLY like this (NO quotes, NO spaces):
+# AUTH_GITHUB_ID=Ov23liMuXRCDw4gBgnyI
+# AUTH_GITHUB_SECRET=A6c1c2c95ca2aee946ae443809a333940ab8a8a3
+# NOT: AUTH_GITHUB_ID="Ov23liMuXRCDw4gBgnyI"  # Quotes break OAuth!
 ```
 
-### 6. Start services
+### 6. Force fresh build (bypasses all cached containers)
 ```bash
-docker compose up -d
+export DOCKER_BUILDKIT=0
+docker build --no-cache -f lobe-chat-custom/Dockerfile.database -t ai-studio-server-gideon-studio .
 ```
 
-### 7. Monitor startup
+### 7. Start single container system
+```bash
+docker compose up -d --scale gideon-studio=1
+```
+
+### 8. Monitor startup
 ```bash
 docker compose logs -f gideon-studio
 ```
 
 Look for:
 - ✓ Ready in XXXms - App started
-- ✓ NO errors about port 3000
-- ✓ NO ECONNREFUSED errors
+- ✓ Database migration pass - PostgreSQL ready
+- ✓ NO errors about port 3000 - NextAuth URLs fixed
+- ✓ NO `incorrect_client_credentials` - OAuth loaded properly
 
 Press Ctrl+C to exit logs once you see successful startup.
 
