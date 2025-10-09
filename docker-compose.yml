@@ -82,7 +82,7 @@ services:
       POSTGRES_USER: gideon
       POSTGRES_PASSWORD: password
     volumes:
-      - /home/jaymes/postgres_data:/var/lib/postgresql/data
+      - postgres_data:/var/lib/postgresql/data
       - ./init-db.sql:/docker-entrypoint-initdb.d/init-db.sql
     ports:
       - "5432:5432"
@@ -134,5 +134,6 @@ services:
     restart: unless-stopped
 
 volumes:
+  postgres_data:
   chromadb_data:
   minio_data:
